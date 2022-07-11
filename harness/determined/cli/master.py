@@ -22,13 +22,19 @@ def config(args: Namespace) -> None:
         print(yaml.safe_dump(response.json(), default_flow_style=False))
 
 @authentication.required
-def agent_profiles(args: Namespace) -> None:
+def agent_iam_roles(args: Namespace) -> None:
     response = api.get(args.master, "config")
+    cluster_id = response.json()["__internal"]["external_sessions"]["cluster_id"]
     pools = response.json()["resource_pools"]
-    # Check args.json?
+    if len(pools) == 0:
+        print(f"no resource pools found for cluster {cluster_id}, no agent IAM roles available")
+        sys.exit(1)
+    accounts = set()
     for p in pools:
-        print("iam_instance_profile_arn:", p["provider"]["iam_instance_profile_arn"])
-    print(len(pools), "agent instance profile(s) found")
+        accounts.add(p["provider"]["iam_instance_profile_arn"].split(":")[4])
+    print(f"Found {len(accounts)} IAM role(s) for cluster {cluster_id}:")
+    for acc in accounts:
+        print(f"arn:aws:iam::{acc}:role/{cluster_id.replace('-', '')}/agent/{cluster_id}-agent")
 
 
 def get_master(args: Namespace) -> None:
@@ -84,7 +90,7 @@ args_description = [
         Cmd("info", get_master, "fetch master info", [
             Group(format_args["json"], format_args["yaml"])
         ]),
-        Cmd("agent-profiles", agent_profiles, "fetch instance profiles of the cluster", [
+        Cmd("agent-iam-roles", agent_iam_roles, "fetch instance profiles of the cluster", [
             Group(format_args["json"], format_args["yaml"])
         ]),
         Cmd("logs", logs, "fetch master logs", [
