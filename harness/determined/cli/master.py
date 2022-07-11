@@ -21,6 +21,15 @@ def config(args: Namespace) -> None:
     else:
         print(yaml.safe_dump(response.json(), default_flow_style=False))
 
+@authentication.required
+def agent_profiles(args: Namespace) -> None:
+    response = api.get(args.master, "config")
+    pools = response.json()["resource_pools"]
+    # Check args.json?
+    for p in pools:
+        print("iam_instance_profile_arn:", p["provider"]["iam_instance_profile_arn"])
+    print(len(pools), "agent instance profile(s) found")
+
 
 def get_master(args: Namespace) -> None:
     resp = bindings.get_GetMaster(setup_session(args))
@@ -73,6 +82,9 @@ args_description = [
             Group(format_args["json"], format_args["yaml"])
         ]),
         Cmd("info", get_master, "fetch master info", [
+            Group(format_args["json"], format_args["yaml"])
+        ]),
+        Cmd("agent-profiles", agent_profiles, "fetch instance profiles of the cluster", [
             Group(format_args["json"], format_args["yaml"])
         ]),
         Cmd("logs", logs, "fetch master logs", [
