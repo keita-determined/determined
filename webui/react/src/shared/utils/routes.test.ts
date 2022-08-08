@@ -310,7 +310,7 @@ describe('Routes Utilities', () => {
 
     it('should route to react URL', () => {
       expect(history.push).not.toHaveBeenCalled();
-      routes.routeToReactUrl(paths.cluster());
+      routes.routeToReactUrl(paths.clusters());
       expect(history.push).toHaveBeenCalledTimes(1);
       expect(history.push).toHaveBeenCalledWith(
         '/clusters',
