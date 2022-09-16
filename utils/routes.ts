@@ -3,10 +3,22 @@ import React from 'react';
 import history from '../routes/history';
 
 import { clone } from './data';
+import rootLogger from './Logger';
 
-export const isFullPath = (url: string): boolean => url.startsWith('http');
+const logger = rootLogger.extend('utils', 'routes');
+
+export const isFullPath = (url: string): boolean => {
+  try {
+    return url.startsWith('http') && !!(new URL(url));
+  } catch (e){
+    return false;
+  }
+};
 // whether the input is pathed from / or not.
-export const isAbsolutePath = (url: string): boolean => url.startsWith('/');
+export const isAbsolutePath = (url: string): boolean => {
+  const regex = /^\/(\w+\/)*\w*$/i;
+  return regex.test(url);
+};
 export const locationToPath = (location?: Location): string | null => {
   if (!location || !location.pathname) return null;
   return location.pathname + location.search + location.hash;
@@ -54,8 +66,10 @@ const stripUrl = (aUrl: string): string => {
   return rest;
 };
 export const routeToExternalUrl = (path: string): void => {
+  logger.trace('routing to external url', path);
   window.location.assign(path);
 };
 export const routeToReactUrl = (path: string): void => {
+  logger.trace('routing to react url', path);
   history.push(stripUrl(path), { loginRedirect: filterOutLoginLocation(window.location) });
 };
