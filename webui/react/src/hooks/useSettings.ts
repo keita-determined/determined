@@ -148,8 +148,8 @@ export const queryToSettings = <T>(config: SettingsConfig, query: string): T => 
        */
       const queryValue = Array.isArray(paramValue)
         ? paramValue
-          .map((value) => queryParamToType(baseType, value))
-          .filter((value): value is Primitive => value !== undefined)
+            .map((value) => queryParamToType(baseType, value))
+            .filter((value): value is Primitive => value !== undefined)
         : queryParamToType(baseType, paramValue);
 
       /*
@@ -158,7 +158,7 @@ export const queryToSettings = <T>(config: SettingsConfig, query: string): T => 
        */
       const normalizedValue =
         prop.type.isArray && queryValue != null && !Array.isArray(queryValue)
-          ? [ queryValue ]
+          ? [queryValue]
           : queryValue;
 
       if (normalizedValue !== undefined) acc[prop.key] = normalizedValue;
@@ -205,7 +205,7 @@ const getNewQueryPath = (
 
   // Add new query to the clean query.
   const cleanQuery = queryString.stringify(cleanParams);
-  const queries = [ cleanQuery, newQuery ].filter((query) => !!query).join('&');
+  const queries = [cleanQuery, newQuery].filter((query) => !!query).join('&');
   return `${basePath}?${queries}`;
 };
 
@@ -223,15 +223,15 @@ const useSettings = <T>(config: SettingsConfig, options?: SettingsHookOptions): 
     userSettings,
   } = useStore();
   const prevSearch = usePrevious(location.search, undefined);
-  const [ settings, setSettings ] = useState<T>(() => getDefaultSettings<T>(config, storage));
-  const [ pathChange, setPathChange ] = useState<PathChange<T>>(defaultPathChange);
+  const [settings, setSettings] = useState<T>(() => getDefaultSettings<T>(config, storage));
+  const [pathChange, setPathChange] = useState<PathChange<T>>(defaultPathChange);
 
   const configMap = useMemo(() => {
     return config.settings.reduce((acc, prop) => {
       acc[prop.key] = prop;
       return acc;
     }, {} as Record<RecordKey, SettingsConfigProp>);
-  }, [ config.settings ]);
+  }, [config.settings]);
 
   /*
    * A setting is considered active if it is set to a value and the
@@ -247,7 +247,7 @@ const useSettings = <T>(config: SettingsConfig, options?: SettingsHookOptions): 
         return acc;
       }, [] as string[]);
     },
-    [ config.settings, settings ],
+    [config.settings, settings],
   );
 
   const updateSettings = useCallback(
@@ -320,9 +320,11 @@ const useSettings = <T>(config: SettingsConfig, options?: SettingsHookOptions): 
       if (updates.length !== 0) {
         try {
           // Persist storage to backend.
-          await Promise.allSettled(updates.map((update) => {
-            updateUserSetting(update);
-          }));
+          await Promise.allSettled(
+            updates.map((update) => {
+              updateUserSetting(update);
+            }),
+          );
         } catch (e) {
           handleError(e, {
             isUserTriggered: false,
@@ -334,7 +336,7 @@ const useSettings = <T>(config: SettingsConfig, options?: SettingsHookOptions): 
         }
       }
     },
-    [ location.pathname, config.applicableRoutespace, configMap, user?.id, storage ],
+    [location.pathname, config.applicableRoutespace, configMap, user?.id, storage],
   );
 
   const resetSettings = useCallback(
@@ -347,7 +349,7 @@ const useSettings = <T>(config: SettingsConfig, options?: SettingsHookOptions): 
 
       await updateSettings(newSettings);
     },
-    [ config.settings, updateSettings ],
+    [config.settings, updateSettings],
   );
 
   const decodeUserSettings = useCallback(() => {
@@ -370,11 +372,11 @@ const useSettings = <T>(config: SettingsConfig, options?: SettingsHookOptions): 
         }
       }
     });
-  }, [ configMap, storage, userSettings, settings ]);
+  }, [configMap, storage, userSettings, settings]);
 
   useEffect(() => {
     decodeUserSettings();
-  }, [ decodeUserSettings ]);
+  }, [decodeUserSettings]);
 
   useEffect(() => {
     if (location.search === prevSearch) return;
@@ -396,7 +398,7 @@ const useSettings = <T>(config: SettingsConfig, options?: SettingsHookOptions): 
     const currentQuery = settingsToQuery(config, settings);
     const searchSettings = queryToSettings(config, locationSearch);
     if (currentQuery && !hasObjectKeys(searchSettings)) {
-      const newQueries = [ currentQuery ];
+      const newQueries = [currentQuery];
       if (locationSearch) newQueries.unshift(locationSearch);
       history.replace(`${location.pathname}?${newQueries.join('&')}`);
     } else {
@@ -404,7 +406,8 @@ const useSettings = <T>(config: SettingsConfig, options?: SettingsHookOptions): 
       const querySettings = queryToSettings<Partial<T>>(config, locationSearch);
       const hasUnsetQuery = Object.keys(querySettings)
         .filter(Boolean)
-        .find((key) => { // can stop at the first occurence
+        .find((key) => {
+          // can stop at the first occurence
           !isEqual(querySettings[key as keyof T], settings[key as keyof T]);
         });
 
@@ -416,7 +419,7 @@ const useSettings = <T>(config: SettingsConfig, options?: SettingsHookOptions): 
         return { ...prevSettings, ...defaultSettings, ...querySettings };
       });
     }
-  }, [ config, history, location.pathname, location.search, prevSearch, settings, storage ]);
+  }, [config, history, location.pathname, location.search, prevSearch, settings, storage]);
 
   useEffect(() => {
     if (pathChange.type === PathChangeType.None) return;
@@ -435,7 +438,7 @@ const useSettings = <T>(config: SettingsConfig, options?: SettingsHookOptions): 
 
     // Reset path change.
     setPathChange(defaultPathChange);
-  }, [ config, history, location.pathname, location.search, pathChange, settings ]);
+  }, [config, history, location.pathname, location.search, pathChange, settings]);
 
   return { activeSettings, resetSettings, settings, updateSettings };
 };
