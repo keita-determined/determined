@@ -76,6 +76,7 @@ interface PermissionsHook {
   canUpdateRoles: (arg0: ProjectPermissionsArgs) => boolean;
   canViewExperimentArtifacts: (arg0: WorkspacePermissionsArgs) => boolean;
   canViewGroups: boolean;
+  canViewModelRegistry: boolean;
   canViewWorkspace: (arg0: WorkspacePermissionsArgs) => boolean;
   canViewWorkspaces: boolean;
   loading: boolean;
@@ -168,6 +169,7 @@ const usePermissions = (): PermissionsHook => {
       canViewExperimentArtifacts: (args: WorkspacePermissionsArgs) =>
         canViewExperimentArtifacts(rbacOpts, args.workspace),
       canViewGroups: canViewGroups(rbacOpts),
+      canViewModelRegistry: canViewModelRegistry(rbacOpts),
       canViewWorkspace: (args: WorkspacePermissionsArgs) =>
         canViewWorkspace(rbacOpts, args.workspace),
       canViewWorkspaces: canViewWorkspaces(rbacOpts),
@@ -228,6 +230,20 @@ const canAdministrateUsers = ({
 
 const canViewGroups = ({ rbacReadPermission, rbacEnabled, user }: RbacOptsProps): boolean => {
   return rbacReadPermission || (!!user && (rbacEnabled || user.isAdmin));
+};
+
+const canViewModelRegistry = ({
+  rbacReadPermission,
+  rbacEnabled,
+  user,
+  userAssignments,
+  userRoles,
+}: RbacOptsProps): boolean => {
+  const permitted = relevantPermissions(userAssignments, userRoles);
+  return (
+    rbacReadPermission ||
+    (!!user && (rbacEnabled ? permitted.has(V1PermissionType.VIEWMODELREGISTRY) : user.isAdmin))
+  );
 };
 
 const canModifyGroups = ({

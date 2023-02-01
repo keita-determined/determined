@@ -44,7 +44,7 @@ import { ErrorType } from 'shared/utils/error';
 import { validateDetApiEnum } from 'shared/utils/service';
 import { alphaNumericSorter } from 'shared/utils/sort';
 import { useCurrentUser, useEnsureUsersFetched, useUsers } from 'stores/users';
-import { ModelItem } from 'types';
+import { ModelItem, Workspace } from 'types';
 import handleError from 'utils/error';
 import { Loadable } from 'utils/loadable';
 import { getDisplayName } from 'utils/user';
@@ -59,7 +59,11 @@ import settingsConfig, {
 
 const filterKeys: Array<keyof Settings> = ['tags', 'name', 'users', 'description'];
 
-const ModelRegistry: React.FC = () => {
+interface Props {
+  workspace?: Workspace;
+}
+
+const ModelRegistry: React.FC<Props> = ({ workspace }: Props) => {
   const users = Loadable.match(useUsers(), {
     Loaded: (cUser) => cUser.users,
     NotLoaded: () => [],
@@ -109,6 +113,7 @@ const ModelRegistry: React.FC = () => {
           orderBy: settings.sortDesc ? 'ORDER_BY_DESC' : 'ORDER_BY_ASC',
           sortBy: validateDetApiEnum(V1GetModelsRequestSortBy, settings.sortKey),
           users: settings.users,
+          workspaceId: workspace?.id,
         },
         { signal: canceler.signal },
       );
@@ -126,7 +131,7 @@ const ModelRegistry: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [settings, canceler.signal]);
+  }, [settings, workspace?.id, canceler.signal]);
 
   const fetchTags = useCallback(async () => {
     try {
